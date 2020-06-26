@@ -31,18 +31,18 @@ export function defaultEventHandler( e )
 	if ( link.hasAttribute( 'target' ) ) return;
 
 	// Don't attempt to process links to nowhere.
-	if ( ! link.hasAttribute('href' ) ) return;
+	if ( ! link.hasAttribute( 'href' ) ) return;
 
 	// Get (and verify) the link's target.
 	const href = link.getAttribute( 'href' );
 
 	// Exclude intra-page anchors.
-	if ( link.startsWith( '#' ) ) return;
+	if ( href.startsWith( '#' ) ) return;
 
 	// Don't follow external links. Because of how HTML anchors work,
 	// all links which are not on the same host name will have to contain
 	// a double forward slash token, separating the protocol from the host.
-	if ( href.contains( '//' ) ) return;
+	if ( href.match( /\/\// ) ) return;
 
 	// Check is the client JS wants this page to be turbo loaded.
 	// If the event 'turbo:fetch' is cancelled, the link is processed
@@ -51,13 +51,13 @@ export function defaultEventHandler( e )
 	if ( ! link.dispatchEvent( turboFetchEvent ) ) return;
 
 	// We are overriding the default action of clicking on a link.
-	e.prventDefault();
+	e.preventDefault();
 
 	// And we are loading a page.
 	loadPage( href );
 }
 
-async function loadPage(href)
+async function loadPage( href )
 {
 	// Load the new document and parse the HTML.
 	// TODO: This needs error handling. In the event on an
@@ -71,11 +71,16 @@ async function loadPage(href)
 	// Replace the head and the body of current doc with the new document.
 	diffAndImportTree( document.head, newDoc.head );
 	diffAndImportTree( document.body, newDoc.body );
+
+	// Update the URL bar.
+	window.history.pushState( null, newDoc.title, href );
 }
 
-export function diffAndImportTree(currentElem, importedElem)
+export async function diffAndImportTree( currentElem, importedElem, digest )
 {
-	const importedHashes = currentElem.children.map( digest );
+	digest = digest || digestSHA;
+
+	const importedHashes = await Promise.all( [...importedElem.children].map( digest ) );
 
 	// The index of the current child in the existing DOM.
 	let childIndex = 0;
@@ -87,14 +92,16 @@ export function diffAndImportTree(currentElem, importedElem)
 	// The index of the current element in the import list.
 	let importedIndex;
 
+	console.log( currentElem.outerHTML, importedElem.outerHTML, importedHashes );
+
 	while ( childIndex < currentElem.childElementCount )
 	{
 		currentNode   = currentElem.children[ childIndex ];
-		importedIndex = importedHashes.indexOf( digest( currentNode ) );
+		importedIndex = importedHashes.indexOf( await digest( currentNode ) );
 
 		console.log(
 			'On ', childIndex, currentNode, ' with import ref ', importedIndex,
-			'. ', lastImportedItem, ' of ', importedElem.childElementCount, ' imported'
+			'.\n', lastImportedItem, ' of ', importedElem.childElementCount, ' imported'
 		);
 
 		// -1 implies this node is not in the import, and so should be deleted.
@@ -120,6 +127,7 @@ export function diffAndImportTree(currentElem, importedElem)
 			// Otherwise, we should not delete. We will leave this element
 			// alone, and move on to the next one.
 			++childIndex;
+			continue;
 		}
 
 		// Otherwise, this node should be retained, and any nodes in the
@@ -127,30 +135,38 @@ export function diffAndImportTree(currentElem, importedElem)
 		// TODO: Do this with less reallocation and also use a document fragment.
 		// Note: we import up to `importedIndex - 1` because this node is a
 		// clone of the one at `importedIndex`.
-		let n = [...importedElem.children].slice( lastImportedItem, importedIndex - 1 );
-		console.log( 'Adding elements ', lastImportedItem, importedIndex - 1 );
-			n.forEach( e => currentElem.insertBefore( e, currentNode ) );
+		if ( importedIndex > lastImportedItem )
+		{
+			let n = [...importedElem.children].slice( lastImportedItem, importedIndex );
+			console.log( 'Adding elements ', lastImportedItem, importedIndex, n );
+				n.forEach( e => currentElem.insertBefore( e.cloneNode( true ), currentNode ) );
+		}
 
 		// Update the indices.
-		childIndex += importedIndex - lastImportedItem;
-		lastImportedItem = importedIndex;
+		childIndex += importedIndex - lastImportedItem + 1;
+		lastImportedItem = importedIndex + 1;
+
+		console.log( 'Keeping element', currentNode, '\ncurrent index', childIndex, ', import index', lastImportedItem );
 	}
 
 	console.log( 'Done with the diff phase' );
 
 	// Append any left over nodes.
-	// TODO: Do this with less reallocation and also use a document fragment.
-	let n = [...importedElem.children].slice( lastImportedItem );
-	console.log( 'Adding remaining elements ', lastImportedItem, importedIndex - 1 );
-		n.forEach( e => currentElem.appendChild( e ) );
+	if ( lastImportedItem < importedHashes.length - 1 )
+	{
+		// TODO: Do this with less reallocation and also use a document fragment.
+		let n = [...importedElem.children].slice( lastImportedItem );
+		console.log( 'Adding remaining elements ', lastImportedItem, n );
+			n.forEach( e => currentElem.appendChild( e ) );
+	}
 }
 
-function digest(node)
+async function digestSHA( node )
 {
-	const buffer = crypto.digest(
+	const buffer = await crypto.digest(
 		'SHA-1',
-		encoder.encode(node.innerHTML)
+		encoder.encode( node.outerHTML )
 	);
 
-	return new Uint8Array(buffer).reduce( (a, v) => a + v.toString(16) );
+	return new Uint8Array( buffer ).reduce( (a, v) => a + v.toString( 16 ), '' );
 }

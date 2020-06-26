@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>This is index.html</title>
+		<link rel="stylesheet" src="main.css" />
+		<link rel="stylesheet" src="index.css" />
+		<script type="module">
+			import { addDefaultHook } from '../src/turbolinks.js';
+
+			addDefaultHook();
+		</script>
+	</head>
+	<body>
+		<nav id="top">
+			<a href="index.html">Index</a> |
+			<a href="page1.html">Page 1</a> |
+			<a href="page2.html">Page 2</a> |
+			<a href="https://github.com/javajawa/microturbolinks">Github</a>
+		</nav>
+		<header>
+			<h1>index.html</h1>
+		</header>
+		<main>
+			Hello, this is text.
+		</main>
+		<footer>
+			<a href="#top">Back To Top</a>
+		</footer>
+	</body>
+</html>
