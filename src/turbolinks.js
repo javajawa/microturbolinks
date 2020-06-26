@@ -21,6 +21,7 @@ export function defaultEventHandler( e )
 	// Only process when no meta keys are held (allow opening in new tab, etc.)
 	if ( e.ctrlKey || e.shiftKey || e.metaKey || e.altKey ) return;
 
+	// Find a link that is being clicked on.
 	const link = e.target.closest( 'a' );
 
 	// This function is operating only on anchors.
@@ -47,7 +48,7 @@ export function defaultEventHandler( e )
 	// If the event 'turbo:fetch' is cancelled, the link is processed
 	// by the default handler.
 	const turboFetchEvent = new CustomEvent( 'turbo:fetch', { detail: href } );
-	if ( ! window.dispatchEvent( turboFetchEvent ) ) return;
+	if ( ! link.dispatchEvent( turboFetchEvent ) ) return;
 
 	// We are overriding the default action of clicking on a link.
 	e.prventDefault();

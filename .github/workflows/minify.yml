@@ -31,7 +31,7 @@ jobs:
           --sourceType "module" --booleans --builtIns --consecutiveAdds \
           --deadcode --evaluate --flipComparisons --mergeVars --numericLiterals \
           --propertyLiterals --regexpConstructors \
-          turbolinks.js --outFile turbolinks.min.js
+          src/turbolinks.js --outFile src/turbolinks.min.js
 
       - name: Auto committing minified files
         uses: stefanzweifel/git-auto-commit-action@v3.0.0
