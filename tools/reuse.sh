@@ -11,9 +11,9 @@ COPYRIGHT="$NAME <$EMAIL>"
 
 LICENSE="BSD-2-Clause"
 
-find src tools -type f -exec \
+find src test tools -type f -exec \
 	reuse addheader --copyright "$COPYRIGHT" --license "$LICENSE" '{}' +
 
-find package.json package-lock.json .eslintrc.js .github .gitignore -type f -exec \
+find .eslintrc.js .github .gitignore -type f -exec \
 	reuse addheader --copyright "$COPYRIGHT" --license "CC0-1.0" '{}' +
 
