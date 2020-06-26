@@ -8,9 +8,10 @@ const parser  = new DOMParser();
 const crypto  = window.crypto.subtle;
 const encoder = new TextEncoder();
 
-export function addDefaultHook()
+export function addDefaultHooks()
 {
 	window.addEventListener( 'click', defaultEventHandler );
+	window.addEventListener( 'popstate', e => { loadPage( document.location ) } );
 }
 
 export function defaultEventHandler( e )
@@ -55,6 +56,9 @@ export function defaultEventHandler( e )
 
 	// And we are loading a page.
 	loadPage( href );
+
+	// Update the URL bar.
+	window.history.pushState( null, null, href );
 }
 
 async function loadPage( href )
@@ -71,9 +75,6 @@ async function loadPage( href )
 	// Replace the head and the body of current doc with the new document.
 	diffAndImportTree( document.head, newDoc.head );
 	diffAndImportTree( document.body, newDoc.body );
-
-	// Update the URL bar.
-	window.history.pushState( null, newDoc.title, href );
 }
 
 export async function diffAndImportTree( currentElem, importedElem, digest )

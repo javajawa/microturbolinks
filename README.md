@@ -17,9 +17,9 @@ It is currently untested.
 Usage:
 
 ```js
-import { addDefaultHook } from '/path/to/turbolinks.js';
+import { addDefaultHooks } from '/path/to/turbolinks.js';
 
-addDefaultHook();
+addDefaultHooks();
 ```
 
 You can prevent a page being loaded this way by cancelling the `turbo:fetch`
