@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2020 Benedict Harcourt
+# SPDX-FileCopyrightText: 2020 Benedict Harcourt <ben.harcourt@harcourtprogramming.co.uk>
+#
+# SPDX-License-Identifier: BSD-2-Clause
+# SPDX-License-Identifier: CC0-1.0
+
+name: JS Lint
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  es-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: a-b-r-o-w-n/eslint-action@v1
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          files: "*.js"
+          extensions: ".js"
