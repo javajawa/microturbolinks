@@ -1,6 +1,6 @@
-// SPDX-FileCopyrightText: 2020 Benedict Harcourt <ben.harcourt@harcourtprogramming.co.uk>
-//
-// SPDX-License-Identifier: BSD-2-Clause
+//! SPDX-FileCopyrightText: 2020 Benedict Harcourt <ben.harcourt@harcourtprogramming.co.uk>
+//!
+//! SPDX-License-Identifier: BSD-2-Clause
 
 'use strict';
 
@@ -61,7 +61,7 @@ export function defaultEventHandler( e )
 	window.history.pushState( null, null, href );
 }
 
-async function loadPage( href )
+export async function loadPage( href )
 {
 	// Load the new document and parse the HTML.
 	// TODO: This needs error handling. In the event on an
@@ -93,28 +93,19 @@ export async function diffAndImportTree( currentElem, importedElem, digest )
 	// The index of the current element in the import list.
 	let importedIndex;
 
-	console.log( currentElem.outerHTML, importedElem.outerHTML, importedHashes );
-
 	while ( childIndex < currentElem.childElementCount )
 	{
 		currentNode   = currentElem.children[ childIndex ];
 		importedIndex = importedHashes.indexOf( await digest( currentNode ) );
-
-		console.log(
-			'On ', childIndex, currentNode, ' with import ref ', importedIndex,
-			'.\n', lastImportedItem, ' of ', importedElem.childElementCount, ' imported'
-		);
 
 		// -1 implies this node is not in the import, and so should be deleted.
 		// The same is true if this element was already imported.
 		if ( importedIndex < lastImportedItem )
 		{
 			const deleteEvent = new CustomEvent( 'turbo:delete' );
-			console.log( 'Requesting to delete', currentNode );
 
 			if ( currentNode.dispatchEvent( deleteEvent ) )
 			{
-				console.log( 'Deleted', currentNode );
 				// We're OK to delete this item.
 				currentElem.removeChild( currentNode );
 
@@ -123,7 +114,6 @@ export async function diffAndImportTree( currentElem, importedElem, digest )
 				continue;
 			}
 
-			console.log( 'Delete was cancelled' );
 
 			// Otherwise, we should not delete. We will leave this element
 			// alone, and move on to the next one.
@@ -139,26 +129,23 @@ export async function diffAndImportTree( currentElem, importedElem, digest )
 		if ( importedIndex > lastImportedItem )
 		{
 			let n = [...importedElem.children].slice( lastImportedItem, importedIndex );
-			console.log( 'Adding elements ', lastImportedItem, importedIndex, n );
-				n.forEach( e => currentElem.insertBefore( e.cloneNode( true ), currentNode ) );
+
+			n.forEach( e => currentElem.insertBefore( e.cloneNode( true ), currentNode ) );
 		}
 
 		// Update the indices.
 		childIndex += importedIndex - lastImportedItem + 1;
 		lastImportedItem = importedIndex + 1;
 
-		console.log( 'Keeping element', currentNode, '\ncurrent index', childIndex, ', import index', lastImportedItem );
 	}
-
-	console.log( 'Done with the diff phase' );
 
 	// Append any left over nodes.
 	if ( lastImportedItem < importedHashes.length - 1 )
 	{
 		// TODO: Do this with less reallocation and also use a document fragment.
 		let n = [...importedElem.children].slice( lastImportedItem );
-		console.log( 'Adding remaining elements ', lastImportedItem, n );
-			n.forEach( e => currentElem.appendChild( e ) );
+
+		n.forEach( e => currentElem.appendChild( e ) );
 	}
 }
 

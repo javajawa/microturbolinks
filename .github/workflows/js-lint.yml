@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: 2020 Benedict Harcourt
 # SPDX-FileCopyrightText: 2020 Benedict Harcourt <ben.harcourt@harcourtprogramming.co.uk>
 #
 # SPDX-License-Identifier: BSD-2-Clause
@@ -9,10 +8,10 @@ name: JS Lint
 on:
   push:
     branches:
-      - master
+      - mainline
   pull_request:
     branches:
-      - master
+      - mainline
 
 jobs:
   es-lint:
