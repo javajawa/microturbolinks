@@ -19,7 +19,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          token: ${{ secrets.PA_TOKEN }}
           ref: ${{ github.head_ref }}
 
       - run: npm install babel-minify
